@@ -12,12 +12,14 @@ local Settings = {
     ESP = false,
     AimPart = "Head",
     FOV = 100,
-    TeamCheck = false
+    TeamCheck = false,
+    MenuVisible = true -- Começa visível, mas vamos alternar com Ctrl
 }
 
 -- INTERFACE DO MENU
 local ScreenGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
 ScreenGui.Name = "BhBz_Hub"
+ScreenGui.ResetOnSpawn = false -- Garante que o menu não suma quando você morrer
 
 local MainFrame = Instance.new("Frame", ScreenGui)
 MainFrame.Size = UDim2.new(0, 250, 0, 350)
@@ -25,6 +27,7 @@ MainFrame.Position = UDim2.new(0.5, -125, 0.5, -175)
 MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 MainFrame.Active = true
 MainFrame.Draggable = true
+MainFrame.Visible = true -- Menu inicia visível para você saber que carregou
 
 local Title = Instance.new("TextLabel", MainFrame)
 Title.Size = UDim2.new(1, 0, 0, 40)
@@ -34,6 +37,16 @@ Title.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 20
 
+-- FUNÇÃO PARA ABRIR/FECHAR COM CONTROL
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed then -- Evita abrir enquanto você escreve no chat
+        if input.KeyCode == Enum.KeyCode.LeftControl then
+            Settings.MenuVisible = not Settings.MenuVisible
+            MainFrame.Visible = Settings.MenuVisible
+        end
+    end
+end)
+
 -- FUNÇÃO DE TOGGLE (BOTAO)
 local function CreateButton(name, pos, callback)
     local Btn = Instance.new("TextButton", MainFrame)
@@ -42,6 +55,7 @@ local function CreateButton(name, pos, callback)
     Btn.Text = name .. ": OFF"
     Btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
     Btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Btn.Font = Enum.Font.Gotham
     
     local enabled = false
     Btn.MouseButton1Click:Connect(function()
@@ -52,10 +66,11 @@ local function CreateButton(name, pos, callback)
     end)
 end
 
+-- BOTÕES
 CreateButton("Aimbot", UDim2.new(0.1, 0, 0, 60), function(v) Settings.Aimbot = v end)
 CreateButton("ESP (Muralha)", UDim2.new(0.1, 0, 0, 105), function(v) Settings.ESP = v end)
 
--- SELETOR CORPO (CABEÇA/BARRIGA)
+-- SELETOR CORPO
 local PartBtn = Instance.new("TextButton", MainFrame)
 PartBtn.Size = UDim2.new(0.8, 0, 0, 35)
 PartBtn.Position = UDim2.new(0.1, 0, 0, 150)
@@ -123,13 +138,14 @@ end
 RunService.RenderStepped:Connect(function()
     FOVCircle.Radius = Settings.FOV
     FOVCircle.Position = UserInputService:GetMouseLocation()
-    FOVCircle.Visible = true
+    FOVCircle.Visible = Settings.MenuVisible -- Círculo só aparece se o menu estiver aberto
 
-    if Settings.Aimbot and UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then -- Ativa segurando o botão direito
+    if Settings.Aimbot and UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then
         local Target = GetClosestPlayer()
         if Target then
-            -- Suavização para não dar ban imediato
             Camera.CFrame = CFrame.new(Camera.CFrame.Position, Target.Position)
         end
     end
 end)
+
+print("BhBz Hub carregado! Aperte 'Left Control' para abrir/fechar.")

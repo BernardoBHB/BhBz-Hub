@@ -1,4 +1,4 @@
--- BHB PLATAFORM - Advanced Roblox Menu
+-- BHBz Hub - Advanced Roblox Menu
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")

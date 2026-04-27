@@ -1,4 +1,4 @@
--- BhBz Hub v2 - Edição Avançada
+-- BhBz Hub v3 - Multi-Tabs Edition
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -6,27 +6,26 @@ local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 local Mouse = LocalPlayer:GetMouse()
 
--- CONFIGURAÇÕES ATUALIZADAS
+-- CONFIGURAÇÕES
 local Settings = {
     Aimbot = false,
     ESP = false,
     Spinbot = false,
     AimPart = "Head",
     FOV = 100,
-    TeamCheck = false,
     MenuVisible = true,
     ESPColor = Color3.fromRGB(0, 255, 255),
-    FOVColor = Color3.fromRGB(255, 255, 255)
+    FOVColor = Color3.fromRGB(0, 255, 255)
 }
 
--- INTERFACE DO MENU (Aumentada para 450px de altura)
+-- INTERFACE PRINCIPAL
 local ScreenGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
-ScreenGui.Name = "BhBz_Hub"
+ScreenGui.Name = "BhBz_Hub_Tabs"
 ScreenGui.ResetOnSpawn = false
 
 local MainFrame = Instance.new("Frame", ScreenGui)
-MainFrame.Size = UDim2.new(0, 260, 0, 480)
-MainFrame.Position = UDim2.new(0.5, -130, 0.5, -240)
+MainFrame.Size = UDim2.new(0, 300, 0, 400)
+MainFrame.Position = UDim2.new(0.5, -150, 0.5, -200)
 MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
@@ -38,137 +37,151 @@ Title.Text = "BhBz Hub PRO"
 Title.TextColor3 = Color3.fromRGB(0, 255, 255)
 Title.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 Title.Font = Enum.Font.GothamBold
-Title.TextSize = 20
+Title.TextSize = 18
 
--- Alternar Menu com Control
-UserInputService.InputBegan:Connect(function(input, gp)
-    if not gp and input.KeyCode == Enum.KeyCode.LeftControl then
+-- SISTEMA DE ABAS (TABS)
+local TabButtons = Instance.new("Frame", MainFrame)
+TabButtons.Size = UDim2.new(1, 0, 0, 30)
+TabButtons.Position = UDim2.new(0, 0, 0, 40)
+TabButtons.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+
+local Container = Instance.new("Frame", MainFrame)
+Container.Size = UDim2.new(1, 0, 1, -70)
+Container.Position = UDim2.new(0, 0, 0, 70)
+Container.BackgroundTransparency = 1
+
+local Tabs = {
+    Combat = Instance.new("ScrollingFrame", Container),
+    Visuals = Instance.new("ScrollingFrame", Container),
+    Misc = Instance.new("ScrollingFrame", Container)
+}
+
+for _, tab in pairs(Tabs) do
+    tab.Size = UDim2.new(1, 0, 1, 0)
+    tab.BackgroundTransparency = 1
+    tab.Visible = false
+    tab.ScrollBarThickness = 2
+end
+Tabs.Combat.Visible = true -- Aba inicial
+
+-- Função para trocar abas
+local function OpenTab(tabName)
+    for name, frame in pairs(Tabs) do
+        frame.Visible = (name == tabName)
+    end
+end
+
+-- Botões das Abas
+local function CreateTabBtn(name, pos)
+    local btn = Instance.new("TextButton", TabButtons)
+    btn.Size = UDim2.new(0.33, 0, 1, 0)
+    btn.Position = pos
+    btn.Text = name
+    btn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Font = Enum.Font.Gotham
+    btn.MouseButton1Click:Connect(function() OpenTab(name) end)
+end
+
+CreateTabBtn("Combat", UDim2.new(0, 0, 0, 0))
+CreateTabBtn("Visuals", UDim2.new(0.33, 0, 0, 0))
+CreateTabBtn("Misc", UDim2.new(0.66, 0, 0, 0))
+
+-- FUNÇÃO PARA CRIAR BOTÕES DENTRO DAS ABAS
+local function AddToggle(parent, name, yPos, callback)
+    local btn = Instance.new("TextButton", parent)
+    btn.Size = UDim2.new(0.9, 0, 0, 35)
+    btn.Position = UDim2.new(0.05, 0, 0, yPos)
+    btn.Text = name .. ": OFF"
+    btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    
+    local enabled = false
+    btn.MouseButton1Click:Connect(function()
+        enabled = not enabled
+        btn.Text = name .. ": " .. (enabled and "ON" or "OFF")
+        btn.BackgroundColor3 = enabled and Color3.fromRGB(0, 150, 255) or Color3.fromRGB(40, 40, 40)
+        callback(enabled)
+    end)
+end
+
+-- --- ABA COMBAT ---
+AddToggle(Tabs.Combat, "Aimbot", 10, function(v) Settings.Aimbot = v end)
+local TargetBtn = Instance.new("TextButton", Tabs.Combat)
+TargetBtn.Size = UDim2.new(0.9, 0, 0, 35); TargetBtn.Position = UDim2.new(0.05, 0, 0, 55)
+TargetBtn.Text = "Alvo: Cabeça"; TargetBtn.MouseButton1Click:Connect(function()
+    Settings.AimPart = (Settings.AimPart == "Head" and "HumanoidRootPart" or "Head")
+    TargetBtn.Text = "Alvo: " .. (Settings.AimPart == "Head" and "Cabeça" or "Barriga")
+end)
+
+-- --- ABA VISUALS ---
+AddToggle(Tabs.Visuals, "ESP Muralha", 10, function(v) Settings.ESP = v end)
+local FovLabel = Instance.new("TextLabel", Tabs.Visuals)
+FovLabel.Size = UDim2.new(1, 0, 0, 20); FovLabel.Position = UDim2.new(0, 0, 0, 55)
+FovLabel.Text = "Ajuste FOV: " .. Settings.FOV; FovLabel.TextColor3 = Color3.fromRGB(255,255,255); FovLabel.BackgroundTransparency = 1
+
+local FovPlus = Instance.new("TextButton", Tabs.Visuals)
+FovPlus.Size = UDim2.new(0.45, 0, 0, 30); FovPlus.Position = UDim2.new(0.05, 0, 0, 80); FovPlus.Text = "+"
+FovPlus.MouseButton1Click:Connect(function() Settings.FOV = Settings.FOV + 10; FovLabel.Text = "Ajuste FOV: "..Settings.FOV end)
+
+local FovMinus = Instance.new("TextButton", Tabs.Visuals)
+FovMinus.Size = UDim2.new(0.45, 0, 0, 30); FovMinus.Position = UDim2.new(0.5, 0, 0, 80); FovMinus.Text = "-"
+FovMinus.MouseButton1Click:Connect(function() Settings.FOV = math.max(10, Settings.FOV - 10); FovLabel.Text = "Ajuste FOV: "..Settings.FOV end)
+
+-- --- ABA MISC ---
+AddToggle(Tabs.Misc, "Spinbot", 10, function(v) Settings.Spinbot = v end)
+local ColorBtn = Instance.new("TextButton", Tabs.Misc)
+ColorBtn.Size = UDim2.new(0.9, 0, 0, 35); ColorBtn.Position = UDim2.new(0.05, 0, 0, 55)
+ColorBtn.Text = "Mudar Cor (ESP/FOV)"; ColorBtn.BackgroundColor3 = Settings.ESPColor
+local cols = {Color3.fromRGB(0,255,255), Color3.fromRGB(255,0,0), Color3.fromRGB(0,255,0), Color3.fromRGB(255,255,0)}
+local cI = 1
+ColorBtn.MouseButton1Click:Connect(function()
+    cI = (cI % #cols) + 1
+    Settings.ESPColor = cols[cI]; Settings.FOVColor = cols[cI]; ColorBtn.BackgroundColor3 = cols[cI]
+end)
+
+-- --- LÓGICAS (O motor do script) ---
+UserInputService.InputBegan:Connect(function(i, gp)
+    if not gp and i.KeyCode == Enum.KeyCode.LeftControl then
         Settings.MenuVisible = not Settings.MenuVisible
         MainFrame.Visible = Settings.MenuVisible
     end
 end)
 
--- FUNÇÃO PARA CRIAR BOTÕES
-local function CreateButton(name, yPos, callback)
-    local Btn = Instance.new("TextButton", MainFrame)
-    Btn.Size = UDim2.new(0.85, 0, 0, 30)
-    Btn.Position = UDim2.new(0.075, 0, 0, yPos)
-    Btn.Text = name .. ": OFF"
-    Btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    Btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Btn.Font = Enum.Font.Gotham
-    
-    local enabled = false
-    Btn.MouseButton1Click:Connect(function()
-        enabled = not enabled
-        Btn.Text = name .. ": " .. (enabled and "ON" or "OFF")
-        Btn.BackgroundColor3 = enabled and Color3.fromRGB(0, 150, 255) or Color3.fromRGB(40, 40, 40)
-        callback(enabled)
-    end)
-end
-
--- --- ADICIONANDO AS FUNÇÕES ---
-
-CreateButton("Aimbot", 50, function(v) Settings.Aimbot = v end)
-CreateButton("ESP Muralha", 90, function(v) Settings.ESP = v end)
-CreateButton("Spinbot", 130, function(v) Settings.Spinbot = v end)
-
--- Seletor Cabeça/Barriga
-local PartBtn = Instance.new("TextButton", MainFrame)
-PartBtn.Size = UDim2.new(0.85, 0, 0, 30)
-PartBtn.Position = UDim2.new(0.075, 0, 0, 170)
-PartBtn.Text = "Alvo: Cabeça"
-PartBtn.BackgroundColor3 = Color3.fromRGB(60, 30, 100)
-PartBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-PartBtn.MouseButton1Click:Connect(function()
-    Settings.AimPart = (Settings.AimPart == "Head" and "HumanoidRootPart" or "Head")
-    PartBtn.Text = "Alvo: " .. (Settings.AimPart == "Head" and "Cabeça" or "Barriga")
-end)
-
--- AJUSTE DE FOV (Slider-like)
-local FovLabel = Instance.new("TextLabel", MainFrame)
-FovLabel.Size = UDim2.new(1, 0, 0, 20)
-FovLabel.Position = UDim2.new(0, 0, 0, 210)
-FovLabel.Text = "FOV: " .. Settings.FOV
-FovLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-FovLabel.BackgroundTransparency = 1
-
-local FovAdd = Instance.new("TextButton", MainFrame)
-FovAdd.Text = "+"; FovAdd.Size = UDim2.new(0.4, 0, 0, 30); FovAdd.Position = UDim2.new(0.075, 0, 0, 230)
-FovAdd.MouseButton1Click:Connect(function() Settings.FOV = Settings.FOV + 10 FovLabel.Text = "FOV: "..Settings.FOV end)
-
-local FovSub = Instance.new("TextButton", MainFrame)
-FovSub.Text = "-"; FovSub.Size = UDim2.new(0.4, 0, 0, 30); FovSub.Position = UDim2.new(0.525, 0, 0, 230)
-FovSub.MouseButton1Click:Connect(function() Settings.FOV = math.max(10, Settings.FOV - 10) FovLabel.Text = "FOV: "..Settings.FOV end)
-
--- SELETORES DE CORES (Simples: Clica para mudar entre cores principais)
-local colors = {Color3.fromRGB(0,255,255), Color3.fromRGB(255,0,0), Color3.fromRGB(0,255,0), Color3.fromRGB(255,255,0)}
-local cIdx = 1
-
-local ColorBtn = Instance.new("TextButton", MainFrame)
-ColorBtn.Size = UDim2.new(0.85, 0, 0, 35)
-ColorBtn.Position = UDim2.new(0.075, 0, 0, 280)
-ColorBtn.Text = "Mudar Cor ESP/FOV"
-ColorBtn.BackgroundColor3 = Settings.ESPColor
-ColorBtn.MouseButton1Click:Connect(function()
-    cIdx = (cIdx % #colors) + 1
-    Settings.ESPColor = colors[cIdx]
-    Settings.FOVColor = colors[cIdx]
-    ColorBtn.BackgroundColor3 = colors[cIdx]
-end)
-
--- FOV VISUAL
 local FOVCircle = Drawing.new("Circle")
-FOVCircle.Thickness = 2
-FOVCircle.Transparency = 0.8
+FOVCircle.Thickness = 2; FOVCircle.Transparency = 0.8
 
--- LÓGICA DO SPINBOT
 RunService.Heartbeat:Connect(function()
     if Settings.Spinbot and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        LocalPlayer.Character.HumanoidRootPart.CFrame = LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(50), 0)
+        LocalPlayer.Character.HumanoidRootPart.CFrame *= CFrame.Angles(0, math.rad(50), 0)
     end
 end)
 
--- LÓGICA DO ESP
 RunService.RenderStepped:Connect(function()
+    FOVCircle.Radius = Settings.FOV; FOVCircle.Color = Settings.FOVColor
+    FOVCircle.Position = UserInputService:GetMouseLocation(); FOVCircle.Visible = Settings.MenuVisible
+    
     for _, p in pairs(Players:GetPlayers()) do
         if p ~= LocalPlayer and p.Character then
             local high = p.Character:FindFirstChild("BhBz_ESP")
             if Settings.ESP then
-                if not high then
-                    high = Instance.new("Highlight", p.Character)
-                    high.Name = "BhBz_ESP"
-                end
-                high.FillColor = Settings.ESPColor
-                high.Enabled = true
+                if not high then high = Instance.new("Highlight", p.Character); high.Name = "BhBz_ESP" end
+                high.FillColor = Settings.ESPColor; high.Enabled = true
             elseif high then high.Enabled = false end
         end
     end
-end)
-
--- LÓGICA DO AIMBOT
-local function GetClosest()
-    local t, dist = nil, Settings.FOV
-    for _, v in pairs(Players:GetPlayers()) do
-        if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild(Settings.AimPart) then
-            local pos, screen = Camera:WorldToViewportPoint(v.Character[Settings.AimPart].Position)
-            if screen then
-                local mDist = (Vector2.new(Mouse.X, Mouse.Y) - Vector2.new(pos.X, pos.Y)).Magnitude
-                if mDist < dist then t = v.Character[Settings.AimPart]; dist = mDist end
+    
+    if Settings.Aimbot and UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then
+        local t, d = nil, Settings.FOV
+        for _, v in pairs(Players:GetPlayers()) do
+            if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild(Settings.AimPart) then
+                local pos, on = Camera:WorldToViewportPoint(v.Character[Settings.AimPart].Position)
+                if on then
+                    local mD = (Vector2.new(Mouse.X, Mouse.Y) - Vector2.new(pos.X, pos.Y)).Magnitude
+                    if mD < d then t = v.Character[Settings.AimPart]; d = mD end
+                end
             end
         end
-    end
-    return t
-end
-
-RunService.RenderStepped:Connect(function()
-    FOVCircle.Radius = Settings.FOV
-    FOVCircle.Color = Settings.FOVColor
-    FOVCircle.Position = UserInputService:GetMouseLocation()
-    FOVCircle.Visible = Settings.MenuVisible
-
-    if Settings.Aimbot and UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then
-        local target = GetClosest()
-        if target then Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Position) end
+        if t then Camera.CFrame = CFrame.new(Camera.CFrame.Position, t.Position) end
     end
 end)

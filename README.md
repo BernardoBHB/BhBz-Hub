@@ -1,4 +1,4 @@
--- BhBz Hub v7.0 - Ultimate Power Edition
+-- BhBz Hub v7.5 - Stable & Fixed Edition
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -7,7 +7,7 @@ local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 local Mouse = LocalPlayer:GetMouse()
 
--- CONFIGURAÇÕES EXPANDIDAS
+-- CONFIGURAÇÕES
 local Settings = {
     Aimbot = false, NoRecoil = false, ESP = false, Spinbot = false,
     NoClip = false, WalkSpeed = 16, JumpPower = 50, Optimize = false,
@@ -18,7 +18,7 @@ local Settings = {
 
 -- INTERFACE
 local ScreenGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
-ScreenGui.Name = "BhBz_Hub_v7"
+ScreenGui.Name = "BhBz_Hub_v7_5"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.DisplayOrder = 999
 ScreenGui.IgnoreGuiInset = true
@@ -27,13 +27,12 @@ local MainFrame = Instance.new("Frame", ScreenGui)
 MainFrame.Size = UDim2.new(0, 380, 0, 480)
 MainFrame.Position = UDim2.new(0.5, -190, 0.5, -240)
 MainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
-MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
 MainFrame.Draggable = true
 
 local Title = Instance.new("TextLabel", MainFrame)
 Title.Size = UDim2.new(1, 0, 0, 40)
-Title.Text = "BhBz Hub PRO v7.0"
+Title.Text = "BhBz Hub PRO v7.5"
 Title.TextColor3 = Color3.fromRGB(0, 255, 255)
 Title.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 Title.Font = Enum.Font.GothamBold
@@ -56,7 +55,7 @@ local Tabs = {
 }
 
 for _, tab in pairs(Tabs) do
-    tab.Size = UDim2.new(1, 0, 1, 0); tab.BackgroundTransparency = 1; tab.Visible = false; tab.ScrollBarThickness = 3
+    tab.Size = UDim2.new(1, 0, 1, 0); tab.BackgroundTransparency = 1; tab.Visible = false; tab.ScrollBarThickness = 3; tab.CanvasSize = UDim2.new(0,0,1.5,0)
 end
 Tabs.Combat.Visible = true
 
@@ -88,20 +87,14 @@ local function AddToggle(parent, name, yPos, callback)
     end)
 end
 
--- --- CONTEÚDO COMBAT ---
+-- COMBAT
 AddToggle(Tabs.Combat, "Aimbot (M2)", 10, function(v) Settings.Aimbot = v end)
-AddToggle(Tabs.Combat, "No Recoil Pro", 50, function(v) Settings.NoRecoil = v end)
+AddToggle(Tabs.Combat, "No Recoil", 50, function(v) Settings.NoRecoil = v end)
 AddToggle(Tabs.Combat, "Auto Clicker", 90, function(v) Settings.AutoClick = v end)
-local TgtBtn = Instance.new("TextButton", Tabs.Combat)
-TgtBtn.Size = UDim2.new(0.9,0,0,35); TgtBtn.Position = UDim2.new(0.05,0,0,130); TgtBtn.Text = "Alvo: Cabeça"
-TgtBtn.MouseButton1Click:Connect(function()
-    Settings.AimPart = (Settings.AimPart == "Head" and "HumanoidRootPart" or "Head")
-    TgtBtn.Text = "Alvo: " .. (Settings.AimPart == "Head" and "Cabeça" or "Barriga")
-end)
 
--- --- CONTEÚDO VISUALS ---
+-- VISUALS
 AddToggle(Tabs.Visuals, "ESP Muralha", 10, function(v) Settings.ESP = v end)
-AddToggle(Tabs.Visuals, "X-Ray", 50, function(v) 
+AddToggle(Tabs.Visuals, "X-Ray", 50, function(v)
     Settings.XRay = v
     for _, obj in pairs(workspace:GetDescendants()) do
         if obj:IsA("BasePart") and not obj:Parent:FindFirstChildOfClass("Humanoid") then
@@ -109,19 +102,11 @@ AddToggle(Tabs.Visuals, "X-Ray", 50, function(v)
         end
     end
 end)
-local ColorBtn = Instance.new("TextButton", Tabs.Visuals)
-ColorBtn.Size = UDim2.new(0.9,0,0,35); ColorBtn.Position = UDim2.new(0.05,0,0,90); ColorBtn.Text = "Mudar Cor do Hub"
-local cols = {Color3.fromRGB(0,255,255), Color3.fromRGB(255,0,0), Color3.fromRGB(0,255,0), Color3.fromRGB(255,255,255)}
-local ci = 1
-ColorBtn.MouseButton1Click:Connect(function()
-    ci = (ci % #cols) + 1; Settings.ESPColor = cols[ci]; Settings.FOVColor = cols[ci]; Title.TextColor3 = cols[ci]
-end)
 
--- --- CONTEÚDO PLAYER ---
+-- PLAYER
 AddToggle(Tabs.Player, "Infinite Jump", 10, function(v) Settings.InfJump = v end)
 AddToggle(Tabs.Player, "NoClip", 50, function(v) Settings.NoClip = v end)
 AddToggle(Tabs.Player, "Spinbot", 90, function(v) Settings.Spinbot = v end)
-AddToggle(Tabs.Player, "Click Teleport (Ctrl+LClick)", 130, function(v) Settings.ClickTP = v end)
 
 local function AddSlider(parent, name, yPos, callback)
     local label = Instance.new("TextLabel", parent)
@@ -131,95 +116,80 @@ local function AddSlider(parent, name, yPos, callback)
     local b2 = Instance.new("TextButton", parent); b2.Size = UDim2.new(0.4,0,0,30); b2.Position = UDim2.new(0.55,0,0,yPos+20); b2.Text = "-"
     b2.MouseButton1Click:Connect(function() callback(false) end)
 end
-AddSlider(Tabs.Player, "Speed", 180, function(a) Settings.WalkSpeed = a and Settings.WalkSpeed + 10 or math.max(16, Settings.WalkSpeed - 10) end)
-AddSlider(Tabs.Player, "Jump", 240, function(a) Settings.JumpPower = a and Settings.JumpPower + 15 or math.max(50, Settings.JumpPower - 15) end)
+AddSlider(Tabs.Player, "Speed", 140, function(a) Settings.WalkSpeed = a and Settings.WalkSpeed + 10 or math.max(16, Settings.WalkSpeed - 10) end)
+AddSlider(Tabs.Player, "Jump", 200, function(a) Settings.JumpPower = a and Settings.JumpPower + 15 or math.max(50, Settings.JumpPower - 15) end)
 
--- --- CONTEÚDO SETTINGS ---
-AddToggle(Tabs.Settings, "Anti-AFK", 10, function(v) Settings.AntiAfk = v end)
-AddToggle(Tabs.Settings, "Full Bright", 50, function(v) Settings.FullBright = v end)
-AddToggle(Tabs.Settings, "No Fog", 90, function(v) Settings.NoFog = v end)
-AddToggle(Tabs.Settings, "Optimize Map (FPS)", 130, function(v) 
-    if v then 
-        for _, x in pairs(workspace:GetDescendants()) do 
-            if x:IsA("BasePart") then x.Material = Enum.Material.SmoothPlastic 
-            elseif x:IsA("Decal") or x:IsA("Texture") then x.Transparency = 1 end
-        end
-    end 
-end)
-AddSlider(Tabs.Settings, "Game FOV", 180, function(add) Settings.GameFOV = add and Settings.GameFOV + 5 or math.max(70, Settings.GameFOV - 5) end)
+-- SETTINGS
+AddToggle(Tabs.Settings, "Full Bright", 10, function(v) Settings.FullBright = v end)
+AddToggle(Tabs.Settings, "No Fog", 50, function(v) Settings.NoFog = v end)
+AddToggle(Tabs.Settings, "Anti-AFK", 90, function(v) Settings.AntiAfk = v end)
 
--- --- LÓGICAS DE EXECUÇÃO ---
-
--- Anti-AFK
-LocalPlayer.Idled:Connect(function()
-    if Settings.AntiAfk then game:GetService("VirtualUser"):Button2Down(Vector2.new(0,0), Camera.CFrame) end
-end)
-
--- Infinite Jump
+-- LÓGICAS DE SISTEMA
 UserInputService.JumpRequest:Connect(function()
     if Settings.InfJump and LocalPlayer.Character then
         LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
     end
 end)
 
--- Click TP
-UserInputService.InputBegan:Connect(function(input)
-    if Settings.ClickTP and input.UserInputType == Enum.UserInputType.MouseButton1 and UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
-        LocalPlayer.Character:MoveTo(Mouse.Hit.p)
-    end
-end)
+local FOVCircle = Drawing.new("Circle")
+FOVCircle.Thickness = 2; FOVCircle.Transparency = 0.8
 
--- Render Loop
 RunService.RenderStepped:Connect(function()
-    if Settings.NoFog then Lighting.FogEnd = 999999; Lighting.Atmosphere:Destroy() end
-    if Settings.FullBright then Lighting.Brightness = 2; Lighting.ClockTime = 14; Lighting.GlobalShadows = false end
-    if Settings.AutoClick then mouse1click() end
-    Camera.FieldOfView = Settings.GameFOV
-    
-    local char = LocalPlayer.Character
-    local hum = char and char:FindFirstChildOfClass("Humanoid")
-    if hum then
-        hum.WalkSpeed = Settings.WalkSpeed; hum.JumpPower = Settings.JumpPower
-        if Settings.Spinbot then 
-            hum.AutoRotate = false; char.HumanoidRootPart.CFrame *= CFrame.Angles(0, math.rad(60), 0) 
-        else hum.AutoRotate = true end
-        if Settings.NoClip then
-            for _, p in pairs(char:GetDescendants()) do if p:IsA("BasePart") then p.CanCollide = false end end
-        end
-    end
+    pcall(function()
+        if Settings.NoFog then Lighting.FogEnd = 9e9 end
+        if Settings.FullBright then Lighting.Brightness = 2; Lighting.ClockTime = 14; Lighting.GlobalShadows = false end
+        Camera.FieldOfView = Settings.GameFOV
+        
+        -- FOV Circle
+        FOVCircle.Visible = true; FOVCircle.Radius = Settings.FOV; FOVCircle.Color = Settings.FOVColor; FOVCircle.Position = UserInputService:GetMouseLocation()
 
-    -- FOV Circle
-    local fovC = _G.FOVCircle or Drawing.new("Circle")
-    _G.FOVCircle = fovC; fovC.Visible = true; fovC.Radius = Settings.FOV; fovC.Color = Settings.FOVColor; fovC.Position = UserInputService:GetMouseLocation(); fovC.Thickness = 2
-    
-    -- ESP & Aimbot
-    if Settings.ESP then
-        for _, p in pairs(Players:GetPlayers()) do
-            if p ~= LocalPlayer and p.Character then
-                local h = p.Character:FindFirstChild("BhBz_ESP") or Instance.new("Highlight", p.Character)
-                h.Name = "BhBz_ESP"; h.FillColor = Settings.ESPColor; h.Enabled = true
+        local char = LocalPlayer.Character
+        local hum = char and char:FindFirstChildOfClass("Humanoid")
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        
+        if hum and hrp then
+            hum.WalkSpeed = Settings.WalkSpeed
+            hum.JumpPower = Settings.JumpPower
+            if Settings.Spinbot then
+                hum.AutoRotate = false
+                hrp.CFrame *= CFrame.Angles(0, math.rad(60), 0)
+            else hum.AutoRotate = true end
+            if Settings.NoClip then
+                for _, p in pairs(char:GetDescendants()) do if p:IsA("BasePart") then p.CanCollide = false end end
             end
         end
-    end
 
-    if Settings.Aimbot and UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then
-        local t, d = nil, Settings.FOV
-        for _, v in pairs(Players:GetPlayers()) do
-            if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild(Settings.AimPart) then
-                local pos, on = Camera:WorldToViewportPoint(v.Character[Settings.AimPart].Position)
-                if on then
-                    local mD = (Vector2.new(Mouse.X, Mouse.Y) - Vector2.new(pos.X, pos.Y)).Magnitude
-                    if mD < d then t = v.Character[Settings.AimPart]; d = mD end
+        -- ESP & AIMBOT
+        if Settings.ESP then
+            for _, p in pairs(Players:GetPlayers()) do
+                if p ~= LocalPlayer and p.Character then
+                    local h = p.Character:FindFirstChild("BhBz_ESP") or Instance.new("Highlight", p.Character)
+                    h.Name = "BhBz_ESP"; h.FillColor = Settings.ESPColor
                 end
             end
         end
-        if t then Camera.CFrame = CFrame.new(Camera.CFrame.Position, t.Position) end
+
+        if Settings.Aimbot and UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then
+            local target = nil; local dist = Settings.FOV
+            for _, v in pairs(Players:GetPlayers()) do
+                if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild(Settings.AimPart) then
+                    local pos, on = Camera:WorldToViewportPoint(v.Character[Settings.AimPart].Position)
+                    if on then
+                        local mD = (Vector2.new(Mouse.X, Mouse.Y) - Vector2.new(pos.X, pos.Y)).Magnitude
+                        if mD < dist then target = v.Character[Settings.AimPart]; dist = mD end
+                    end
+                end
+            end
+            if target then Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Position) end
+        end
+    end)
+end)
+
+-- Toggle Menu
+UserInputService.InputBegan:Connect(function(i, gp)
+    if not gp and i.KeyCode == Enum.KeyCode.LeftControl then
+        MainFrame.Visible = not MainFrame.Visible
     end
 end)
 
--- Abre/Fecha Menu
-UserInputService.InputBegan:Connect(function(i, gp)
-    if not gp and i.KeyCode == Enum.KeyCode.LeftControl then
-        Settings.MenuVisible = not Settings.MenuVisible; MainFrame.Visible = Settings.MenuVisible
-    end
-end)
+print("BhBz Hub v7.5 Loaded!")

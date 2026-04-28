@@ -1,4 +1,4 @@
--- BhBz Hub v10.0 - Redz Style Design
+-- BhBz Hub v11.0 - Red Edition (Stable)
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -19,46 +19,62 @@ local Settings = {
     FullBright = false,
     AimPart = "Head",
     FOV = 100,
-    ESPColor = Color3.fromRGB(0, 255, 255),
+    ESPColor = Color3.fromRGB(255, 0, 0), -- Vermelho
     InfJump = false
 }
 
 -- INTERFACE PRINCIPAL
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "BhBz_Redz_Style"
+ScreenGui.Name = "BhBz_Red_Edition"
 ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 ScreenGui.ResetOnSpawn = false
+ScreenGui.DisplayOrder = 999
 
 local MainFrame = Instance.new("Frame", ScreenGui)
 MainFrame.Size = UDim2.new(0, 500, 0, 320)
 MainFrame.Position = UDim2.new(0.5, -250, 0.5, -160)
-MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
-MainFrame.Draggable = true
 
--- Arredondar bordas do MainFrame
-local MainCorner = Instance.new("UICorner", MainFrame)
-MainCorner.CornerRadius = ToolToRadius and ToolToRadius(8) or UDim.new(0, 8)
+-- ARRASTAR O HUB (DRAG SYSTEM)
+local dragging, dragInput, dragStart, startPos
+MainFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = MainFrame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then dragging = false end
+        end)
+    end
+end)
+MainFrame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then dragInput = input end
+end)
+RunService.RenderStepped:Connect(function()
+    if dragging and dragInput then
+        local delta = dragInput.Position - dragStart
+        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
 
--- Barra Lateral (Abas)
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
+
+-- Lateral
 local SideBar = Instance.new("Frame", MainFrame)
 SideBar.Size = UDim2.new(0, 130, 1, 0)
-SideBar.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-SideBar.BorderSizePixel = 0
-
-local SideCorner = Instance.new("UICorner", SideBar)
-SideCorner.CornerRadius = UDim.new(0, 8)
+SideBar.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+Instance.new("UICorner", SideBar).CornerRadius = UDim.new(0, 10)
 
 local Title = Instance.new("TextLabel", SideBar)
-Title.Size = UDim2.new(1, 0, 0, 40)
+Title.Size = UDim2.new(1, 0, 0, 50)
 Title.Text = "BhBz Hub"
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextColor3 = Color3.fromRGB(255, 0, 0) -- Título Vermelho
 Title.Font = Enum.Font.GothamBold
-Title.TextSize = 16
+Title.TextSize = 20
 Title.BackgroundTransparency = 1
 
--- Container de Conteúdo
 local Content = Instance.new("Frame", MainFrame)
 Content.Size = UDim2.new(1, -140, 1, -10)
 Content.Position = UDim2.new(0, 135, 0, 5)
@@ -71,30 +87,18 @@ local Tabs = {
 }
 
 for _, tab in pairs(Tabs) do
-    tab.Size = UDim2.new(1, 0, 1, 0)
-    tab.BackgroundTransparency = 1
-    tab.Visible = false
-    tab.ScrollBarThickness = 2
-    tab.BorderSizePixel = 0
-    tab.CanvasSize = UDim2.new(0, 0, 1.5, 0)
+    tab.Size = UDim2.new(1, 0, 1, 0); tab.BackgroundTransparency = 1; tab.Visible = false
+    tab.ScrollBarThickness = 0; tab.CanvasSize = UDim2.new(0, 0, 1.5, 0)
 end
 Tabs.Combat.Visible = true
 
--- Função para criar botões na lateral
-local btnY = 50
+local btnY = 60
 local function CreateTabBtn(name, tabFrame)
     local btn = Instance.new("TextButton", SideBar)
-    btn.Size = UDim2.new(0.9, 0, 0, 35)
-    btn.Position = UDim2.new(0.05, 0, 0, btnY)
-    btn.Text = name
-    btn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-    btn.TextColor3 = Color3.fromRGB(200, 200, 200)
-    btn.Font = Enum.Font.GothamSemibold
-    btn.TextSize = 13
-    btn.AutoButtonColor = true
-    
-    local corner = Instance.new("UICorner", btn)
-    corner.CornerRadius = UDim.new(0, 6)
+    btn.Size = UDim2.new(0.85, 0, 0, 35); btn.Position = UDim2.new(0.07, 0, 0, btnY)
+    btn.Text = name; btn.BackgroundColor3 = Color3.fromRGB(20, 20, 20); btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Font = Enum.Font.GothamBold; btn.TextSize = 13
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
     
     btn.MouseButton1Click:Connect(function()
         for _, t in pairs(Tabs) do t.Visible = false end
@@ -107,38 +111,22 @@ CreateTabBtn("Combat", Tabs.Combat)
 CreateTabBtn("Visual", Tabs.Visual)
 CreateTabBtn("Player", Tabs.Player)
 
--- Função de Toggle estilo Redz
+-- Toggle Vermelho (Estilo Redz)
 local function AddToggle(parent, name, yPos, callback)
     local frame = Instance.new("Frame", parent)
-    frame.Size = UDim2.new(0.95, 0, 0, 40)
-    frame.Position = UDim2.new(0, 5, 0, yPos)
-    frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    
-    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 6)
+    frame.Size = UDim2.new(0.95, 0, 0, 45); frame.Position = UDim2.new(0, 5, 0, yPos); frame.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
+    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 8)
     
     local label = Instance.new("TextLabel", frame)
-    label.Size = UDim2.new(1, -50, 1, 0)
-    label.Position = UDim2.new(0, 10, 0, 0)
-    label.Text = name
-    label.TextColor3 = Color3.fromRGB(255, 255, 255)
-    label.Font = Enum.Font.Gotham
-    label.TextSize = 14
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.BackgroundTransparency = 1
+    label.Size = UDim2.new(1, -60, 1, 0); label.Position = UDim2.new(0, 15, 0, 0); label.Text = name
+    label.TextColor3 = Color3.fromRGB(255, 255, 255); label.Font = Enum.Font.Gotham; label.TextSize = 14; label.TextXAlignment = Enum.TextXAlignment.Left; label.BackgroundTransparency = 1
     
     local btn = Instance.new("TextButton", frame)
-    btn.Size = UDim2.new(0, 35, 0, 20)
-    btn.Position = UDim2.new(1, -45, 0.5, -10)
-    btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    btn.Text = ""
-    
-    local btnCorner = Instance.new("UICorner", btn)
-    btnCorner.CornerRadius = UDim.new(1, 0)
+    btn.Size = UDim2.new(0, 40, 0, 22); btn.Position = UDim2.new(1, -50, 0.5, -11); btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40); btn.Text = ""
+    local bc = Instance.new("UICorner", btn); bc.CornerRadius = UDim.new(1, 0)
     
     local dot = Instance.new("Frame", btn)
-    dot.Size = UDim2.new(0, 14, 0, 14)
-    dot.Position = UDim2.new(0, 3, 0.5, -7)
-    dot.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
+    dot.Size = UDim2.new(0, 16, 0, 16); dot.Position = UDim2.new(0, 3, 0.5, -8); dot.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     Instance.new("UICorner", dot).CornerRadius = UDim.new(1, 0)
     
     local enabled = false
@@ -146,94 +134,87 @@ local function AddToggle(parent, name, yPos, callback)
         enabled = not enabled
         callback(enabled)
         if enabled then
-            btn.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
-            dot:TweenPosition(UDim2.new(1, -17, 0.5, -7), "Out", "Quad", 0.2)
+            btn.BackgroundColor3 = Color3.fromRGB(200, 0, 0) -- Ativado em Vermelho
+            dot:TweenPosition(UDim2.new(1, -19, 0.5, -8), "Out", "Quad", 0.15)
         else
-            btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-            dot:TweenPosition(UDim2.new(0, 3, 0.5, -7), "Out", "Quad", 0.2)
+            btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+            dot:TweenPosition(UDim2.new(0, 3, 0.5, -8), "Out", "Quad", 0.15)
         end
     end)
 end
 
--- ADICIONANDO FUNÇÕES
-AddToggle(Tabs.Combat, "Aimbot (Hold M2)", 10, function(v) Settings.Aimbot = v end)
-AddToggle(Tabs.Combat, "No Recoil", 55, function(v) Settings.NoRecoil = v end)
+-- FUNÇÕES
+AddToggle(Tabs.Combat, "Aimbot (Botão Direito)", 10, function(v) Settings.Aimbot = v end)
+AddToggle(Tabs.Combat, "No Recoil Estável", 60, function(v) Settings.NoRecoil = v end)
+AddToggle(Tabs.Visual, "ESP (Highlight Fix)", 10, function(v) Settings.ESP = v end)
+AddToggle(Tabs.Visual, "Full Bright", 60, function(v) Settings.FullBright = v end)
+AddToggle(Tabs.Player, "Speed (100)", 10, function(v) Settings.WalkSpeed = v and 100 or 16 end)
+AddToggle(Tabs.Player, "Jump (150)", 60, function(v) Settings.JumpPower = v and 150 or 50 end)
+AddToggle(Tabs.Player, "NoClip", 110, function(v) Settings.NoClip = v end)
 
-AddToggle(Tabs.Visual, "ESP Muralha", 10, function(v) Settings.ESP = v end)
-AddToggle(Tabs.Visual, "Full Bright", 55, function(v) Settings.FullBright = v end)
-
-AddToggle(Tabs.Player, "Velocidade (100)", 10, function(v) Settings.WalkSpeed = v and 100 or 16 end)
-AddToggle(Tabs.Player, "Pulo Alto (150)", 55, function(v) Settings.JumpPower = v and 150 or 50 end)
-AddToggle(Tabs.Player, "Infinite Jump", 100, function(v) Settings.InfJump = v end)
-AddToggle(Tabs.Player, "NoClip", 145, function(v) Settings.NoClip = v end)
-AddToggle(Tabs.Player, "Spinbot", 190, function(v) Settings.Spinbot = v end)
-
--- LÓGICAS (IGUAL AO v9.5)
+-- FOV CIRCLE
 local fov = Drawing.new("Circle")
-fov.Thickness = 2; fov.Visible = true
+fov.Thickness = 2; fov.Color = Color3.fromRGB(255, 0, 0); fov.Visible = true
 
-local LastRotation = Camera.CFrame
+-- LÓGICA NO RECOIL (MÉTODO VELOCITY ZERO)
 RunService.RenderStepped:Connect(function()
-    if Settings.NoRecoil and UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then
-        local DeltaX, DeltaY, DeltaZ = Camera.CFrame:ToOrientation()
-        local LastX = LastRotation:ToOrientation()
-        if DeltaX > LastX then 
-            Camera.CFrame = CFrame.new(Camera.CFrame.Position) * CFrame.fromOrientation(LastX, DeltaY, DeltaZ)
-        end
+    if Settings.NoRecoil then
+        -- Força a câmera a ignorar vetores de recuo comuns
+        Camera.RotVelocity = Vector3.new(0,0,0)
     end
-    LastRotation = Camera.CFrame
     
     if Settings.Aimbot and UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then
-        local target = nil; local dist = Settings.FOV
+        local t, d = nil, Settings.FOV
         for _, v in pairs(Players:GetPlayers()) do
-            if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild(Settings.AimPart) then
-                local pos, on = Camera:WorldToViewportPoint(v.Character[Settings.AimPart].Position)
+            if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild("Head") then
+                local pos, on = Camera:WorldToViewportPoint(v.Character.Head.Position)
                 if on then
                     local mD = (Vector2.new(Mouse.X, Mouse.Y) - Vector2.new(pos.X, pos.Y)).Magnitude
-                    if mD < dist then target = v.Character[Settings.AimPart]; dist = mD end
+                    if mD < d then t = v.Character.Head; d = mD end
                 end
             end
         end
-        if target then Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Position) end
+        if t then Camera.CFrame = CFrame.new(Camera.CFrame.Position, t.Position) end
     end
 end)
 
+-- LÓGICA ESP E SISTEMAS
 RunService.Heartbeat:Connect(function()
-    pcall(function()
-        local char = LocalPlayer.Character
-        local hum = char and char:FindFirstChildOfClass("Humanoid")
-        if hum then
-            hum.WalkSpeed = Settings.WalkSpeed
-            hum.JumpPower = Settings.JumpPower
-            if Settings.Spinbot then
-                hum.AutoRotate = false; char.HumanoidRootPart.CFrame *= CFrame.Angles(0, math.rad(60), 0)
-            else hum.AutoRotate = true end
-            if Settings.NoClip then
-                for _, p in pairs(char:GetDescendants()) do if p:IsA("BasePart") then p.CanCollide = false end end
-            end
-        end
-        if Settings.FullBright then Lighting.Brightness = 2; Lighting.ClockTime = 14; Lighting.GlobalShadows = false end
-        fov.Radius = Settings.FOV; fov.Color = Color3.fromRGB(255,255,255); fov.Position = UserInputService:GetMouseLocation()
-    end)
-end)
-
-RunService.Stepped:Connect(function()
+    fov.Radius = Settings.FOV; fov.Position = UserInputService:GetMouseLocation()
+    
     if Settings.ESP then
         for _, p in pairs(Players:GetPlayers()) do
             if p ~= LocalPlayer and p.Character then
-                local h = p.Character:FindFirstChild("Highlight") or Instance.new("Highlight", p.Character)
-                h.Enabled = true; h.FillColor = Settings.ESPColor
+                local h = p.Character:FindFirstChild("BhBz_ESP") or Instance.new("Highlight")
+                h.Name = "BhBz_ESP"
+                h.Parent = p.Character
+                h.FillColor = Settings.ESPColor
+                h.OutlineColor = Color3.fromRGB(255, 255, 255)
+                h.Enabled = true
+            end
+        end
+    else
+        for _, p in pairs(Players:GetPlayers()) do
+            if p.Character and p.Character:FindFirstChild("BhBz_ESP") then
+                p.Character.BhBz_ESP.Enabled = false
             end
         end
     end
-end)
 
-UserInputService.JumpRequest:Connect(function()
-    if Settings.InfJump and LocalPlayer.Character then
-        LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid.WalkSpeed = Settings.WalkSpeed
+        LocalPlayer.Character.Humanoid.JumpPower = Settings.JumpPower
+        if Settings.NoClip then
+            for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+                if part:IsA("BasePart") then part.CanCollide = false end
+            end
+        end
     end
+    if Settings.FullBright then Lighting.Brightness = 2; Lighting.ClockTime = 14; Lighting.GlobalShadows = false end
 end)
 
 UserInputService.InputBegan:Connect(function(i, gp)
     if not gp and i.KeyCode == Enum.KeyCode.LeftControl then MainFrame.Visible = not MainFrame.Visible end
 end)
+
+print("BhBz Hub v11 Carregado!")

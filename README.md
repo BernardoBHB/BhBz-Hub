@@ -1,4 +1,4 @@
--- BhBz Hub v11.0 - Red Edition (Stable)
+-- BhBz Hub v12.0 - Hitbox & Spinbot Update
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -17,41 +17,36 @@ local Settings = {
     WalkSpeed = 16,
     JumpPower = 50,
     FullBright = false,
+    HitboxSize = 2, -- Tamanho padrão da cabeça
+    HitboxEnabled = false,
     AimPart = "Head",
     FOV = 100,
-    ESPColor = Color3.fromRGB(255, 0, 0), -- Vermelho
-    InfJump = false
+    ESPColor = Color3.fromRGB(255, 0, 0)
 }
 
 -- INTERFACE PRINCIPAL
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "BhBz_Red_Edition"
+ScreenGui.Name = "BhBz_Red_v12"
 ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 ScreenGui.ResetOnSpawn = false
 ScreenGui.DisplayOrder = 999
 
 local MainFrame = Instance.new("Frame", ScreenGui)
-MainFrame.Size = UDim2.new(0, 500, 0, 320)
-MainFrame.Position = UDim2.new(0.5, -250, 0.5, -160)
+MainFrame.Size = UDim2.new(0, 500, 0, 350)
+MainFrame.Position = UDim2.new(0.5, -250, 0.5, -175)
 MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
 
--- ARRASTAR O HUB (DRAG SYSTEM)
+-- DRAG SYSTEM
 local dragging, dragInput, dragStart, startPos
 MainFrame.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        dragStart = input.Position
-        startPos = MainFrame.Position
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then dragging = false end
-        end)
+        dragging = true; dragStart = input.Position; startPos = MainFrame.Position
+        input.Changed:Connect(function() if input.UserInputState == Enum.UserInputState.End then dragging = false end end)
     end
 end)
-MainFrame.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement then dragInput = input end
-end)
+MainFrame.InputChanged:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseMovement then dragInput = input end end)
 RunService.RenderStepped:Connect(function()
     if dragging and dragInput then
         local delta = dragInput.Position - dragStart
@@ -63,158 +58,123 @@ Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 -- Lateral
 local SideBar = Instance.new("Frame", MainFrame)
-SideBar.Size = UDim2.new(0, 130, 1, 0)
-SideBar.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+SideBar.Size = UDim2.new(0, 130, 1, 0); SideBar.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
 Instance.new("UICorner", SideBar).CornerRadius = UDim.new(0, 10)
 
 local Title = Instance.new("TextLabel", SideBar)
-Title.Size = UDim2.new(1, 0, 0, 50)
-Title.Text = "BhBz Hub"
-Title.TextColor3 = Color3.fromRGB(255, 0, 0) -- Título Vermelho
-Title.Font = Enum.Font.GothamBold
-Title.TextSize = 20
-Title.BackgroundTransparency = 1
+Title.Size = UDim2.new(1, 0, 0, 50); Title.Text = "BhBz Hub"; Title.TextColor3 = Color3.fromRGB(255, 0, 0); Title.Font = Enum.Font.GothamBold; Title.TextSize = 20; Title.BackgroundTransparency = 1
 
 local Content = Instance.new("Frame", MainFrame)
-Content.Size = UDim2.new(1, -140, 1, -10)
-Content.Position = UDim2.new(0, 135, 0, 5)
-Content.BackgroundTransparency = 1
+Content.Size = UDim2.new(1, -140, 1, -10); Content.Position = UDim2.new(0, 135, 0, 5); Content.BackgroundTransparency = 1
 
-local Tabs = {
-    Combat = Instance.new("ScrollingFrame", Content),
-    Visual = Instance.new("ScrollingFrame", Content),
-    Player = Instance.new("ScrollingFrame", Content)
-}
-
+local Tabs = { Combat = Instance.new("ScrollingFrame", Content), Visual = Instance.new("ScrollingFrame", Content), Player = Instance.new("ScrollingFrame", Content) }
 for _, tab in pairs(Tabs) do
-    tab.Size = UDim2.new(1, 0, 1, 0); tab.BackgroundTransparency = 1; tab.Visible = false
-    tab.ScrollBarThickness = 0; tab.CanvasSize = UDim2.new(0, 0, 1.5, 0)
+    tab.Size = UDim2.new(1, 0, 1, 0); tab.BackgroundTransparency = 1; tab.Visible = false; tab.ScrollBarThickness = 0; tab.CanvasSize = UDim2.new(0, 0, 2, 0)
 end
 Tabs.Combat.Visible = true
 
 local btnY = 60
 local function CreateTabBtn(name, tabFrame)
     local btn = Instance.new("TextButton", SideBar)
-    btn.Size = UDim2.new(0.85, 0, 0, 35); btn.Position = UDim2.new(0.07, 0, 0, btnY)
-    btn.Text = name; btn.BackgroundColor3 = Color3.fromRGB(20, 20, 20); btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    btn.Font = Enum.Font.GothamBold; btn.TextSize = 13
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
-    
-    btn.MouseButton1Click:Connect(function()
-        for _, t in pairs(Tabs) do t.Visible = false end
-        tabFrame.Visible = true
-    end)
+    btn.Size = UDim2.new(0.85, 0, 0, 35); btn.Position = UDim2.new(0.07, 0, 0, btnY); btn.Text = name; btn.BackgroundColor3 = Color3.fromRGB(20, 20, 20); btn.TextColor3 = Color3.fromRGB(255, 255, 255); btn.Font = Enum.Font.GothamBold; btn.TextSize = 13; Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+    btn.MouseButton1Click:Connect(function() for _, t in pairs(Tabs) do t.Visible = false end; tabFrame.Visible = true end)
     btnY = btnY + 40
 end
+CreateTabBtn("Combat", Tabs.Combat); CreateTabBtn("Visual", Tabs.Visual); CreateTabBtn("Player", Tabs.Player)
 
-CreateTabBtn("Combat", Tabs.Combat)
-CreateTabBtn("Visual", Tabs.Visual)
-CreateTabBtn("Player", Tabs.Player)
-
--- Toggle Vermelho (Estilo Redz)
 local function AddToggle(parent, name, yPos, callback)
     local frame = Instance.new("Frame", parent)
-    frame.Size = UDim2.new(0.95, 0, 0, 45); frame.Position = UDim2.new(0, 5, 0, yPos); frame.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
-    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 8)
-    
-    local label = Instance.new("TextLabel", frame)
-    label.Size = UDim2.new(1, -60, 1, 0); label.Position = UDim2.new(0, 15, 0, 0); label.Text = name
-    label.TextColor3 = Color3.fromRGB(255, 255, 255); label.Font = Enum.Font.Gotham; label.TextSize = 14; label.TextXAlignment = Enum.TextXAlignment.Left; label.BackgroundTransparency = 1
-    
-    local btn = Instance.new("TextButton", frame)
-    btn.Size = UDim2.new(0, 40, 0, 22); btn.Position = UDim2.new(1, -50, 0.5, -11); btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40); btn.Text = ""
-    local bc = Instance.new("UICorner", btn); bc.CornerRadius = UDim.new(1, 0)
-    
-    local dot = Instance.new("Frame", btn)
-    dot.Size = UDim2.new(0, 16, 0, 16); dot.Position = UDim2.new(0, 3, 0.5, -8); dot.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    Instance.new("UICorner", dot).CornerRadius = UDim.new(1, 0)
-    
+    frame.Size = UDim2.new(0.95, 0, 0, 45); frame.Position = UDim2.new(0, 5, 0, yPos); frame.BackgroundColor3 = Color3.fromRGB(22, 22, 22); Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 8)
+    local label = Instance.new("TextLabel", frame); label.Size = UDim2.new(1, -60, 1, 0); label.Position = UDim2.new(0, 15, 0, 0); label.Text = name; label.TextColor3 = Color3.fromRGB(255, 255, 255); label.Font = Enum.Font.Gotham; label.TextSize = 14; label.TextXAlignment = Enum.TextXAlignment.Left; label.BackgroundTransparency = 1
+    local btn = Instance.new("TextButton", frame); btn.Size = UDim2.new(0, 40, 0, 22); btn.Position = UDim2.new(1, -50, 0.5, -11); btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40); btn.Text = ""; Instance.new("UICorner", btn).CornerRadius = UDim.new(1, 0)
+    local dot = Instance.new("Frame", btn); dot.Size = UDim2.new(0, 16, 0, 16); dot.Position = UDim2.new(0, 3, 0.5, -8); dot.BackgroundColor3 = Color3.fromRGB(255, 255, 255); Instance.new("UICorner", dot).CornerRadius = UDim.new(1, 0)
     local enabled = false
-    btn.MouseButton1Click:Connect(function()
-        enabled = not enabled
-        callback(enabled)
-        if enabled then
-            btn.BackgroundColor3 = Color3.fromRGB(200, 0, 0) -- Ativado em Vermelho
-            dot:TweenPosition(UDim2.new(1, -19, 0.5, -8), "Out", "Quad", 0.15)
-        else
-            btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-            dot:TweenPosition(UDim2.new(0, 3, 0.5, -8), "Out", "Quad", 0.15)
-        end
-    end)
+    btn.MouseButton1Click:Connect(function() enabled = not enabled; callback(enabled); btn.BackgroundColor3 = enabled and Color3.fromRGB(200, 0, 0) or Color3.fromRGB(40, 40, 40); dot:TweenPosition(UDim2.new(enabled and 1 or 0, enabled and -19 or 3, 0.5, -8), "Out", "Quad", 0.15) end)
 end
 
--- FUNÇÕES
-AddToggle(Tabs.Combat, "Aimbot (Botão Direito)", 10, function(v) Settings.Aimbot = v end)
-AddToggle(Tabs.Combat, "No Recoil Estável", 60, function(v) Settings.NoRecoil = v end)
-AddToggle(Tabs.Visual, "ESP (Highlight Fix)", 10, function(v) Settings.ESP = v end)
+-- FUNÇÕES TABS
+AddToggle(Tabs.Combat, "Aimbot (Segurar M2)", 10, function(v) Settings.Aimbot = v end)
+AddToggle(Tabs.Combat, "No Recoil Clássico", 60, function(v) Settings.NoRecoil = v end)
+AddToggle(Tabs.Combat, "Aumentar Hitbox Head", 110, function(v) Settings.HitboxEnabled = v end)
+
+AddToggle(Tabs.Visual, "ESP Inimigos", 10, function(v) Settings.ESP = v end)
 AddToggle(Tabs.Visual, "Full Bright", 60, function(v) Settings.FullBright = v end)
-AddToggle(Tabs.Player, "Speed (100)", 10, function(v) Settings.WalkSpeed = v and 100 or 16 end)
-AddToggle(Tabs.Player, "Jump (150)", 60, function(v) Settings.JumpPower = v and 150 or 50 end)
-AddToggle(Tabs.Player, "NoClip", 110, function(v) Settings.NoClip = v end)
 
--- FOV CIRCLE
-local fov = Drawing.new("Circle")
-fov.Thickness = 2; fov.Color = Color3.fromRGB(255, 0, 0); fov.Visible = true
+AddToggle(Tabs.Player, "Spinbot", 10, function(v) Settings.Spinbot = v end)
+AddToggle(Tabs.Player, "Velocidade (100)", 60, function(v) Settings.WalkSpeed = v and 100 or 16 end)
+AddToggle(Tabs.Player, "Pulo (150)", 110, function(v) Settings.JumpPower = v and 150 or 50 end)
+AddToggle(Tabs.Player, "NoClip", 160, function(v) Settings.NoClip = v end)
 
--- LÓGICA NO RECOIL (MÉTODO VELOCITY ZERO)
+-- LÓGICA CORE
+local fovCircle = Drawing.new("Circle")
+fovCircle.Thickness = 2; fovCircle.Color = Color3.fromRGB(255, 0, 0); fovCircle.Visible = true
+
+local LastRotation = Camera.CFrame
 RunService.RenderStepped:Connect(function()
-    if Settings.NoRecoil then
-        -- Força a câmera a ignorar vetores de recuo comuns
-        Camera.RotVelocity = Vector3.new(0,0,0)
+    -- NO RECOIL CLÁSSICO
+    if Settings.NoRecoil and UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then
+        local DeltaX, DeltaY, DeltaZ = Camera.CFrame:ToOrientation()
+        local LastX = LastRotation:ToOrientation()
+        if DeltaX > LastX then Camera.CFrame = CFrame.new(Camera.CFrame.Position) * CFrame.fromOrientation(LastX, DeltaY, DeltaZ) end
     end
+    LastRotation = Camera.CFrame
     
+    -- AIMBOT AGRESSIVO
     if Settings.Aimbot and UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then
-        local t, d = nil, Settings.FOV
+        local target = nil; local dist = Settings.FOV
         for _, v in pairs(Players:GetPlayers()) do
             if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild("Head") then
-                local pos, on = Camera:WorldToViewportPoint(v.Character.Head.Position)
-                if on then
-                    local mD = (Vector2.new(Mouse.X, Mouse.Y) - Vector2.new(pos.X, pos.Y)).Magnitude
-                    if mD < d then t = v.Character.Head; d = mD end
+                local pos, onScreen = Camera:WorldToViewportPoint(v.Character.Head.Position)
+                if onScreen then
+                    local mouseDist = (Vector2.new(Mouse.X, Mouse.Y) - Vector2.new(pos.X, pos.Y)).Magnitude
+                    if mouseDist < dist then target = v.Character.Head; dist = mouseDist end
                 end
             end
         end
-        if t then Camera.CFrame = CFrame.new(Camera.CFrame.Position, t.Position) end
+        if target then Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Position) end
     end
 end)
 
--- LÓGICA ESP E SISTEMAS
 RunService.Heartbeat:Connect(function()
-    fov.Radius = Settings.FOV; fov.Position = UserInputService:GetMouseLocation()
-    
-    if Settings.ESP then
-        for _, p in pairs(Players:GetPlayers()) do
-            if p ~= LocalPlayer and p.Character then
-                local h = p.Character:FindFirstChild("BhBz_ESP") or Instance.new("Highlight")
-                h.Name = "BhBz_ESP"
-                h.Parent = p.Character
-                h.FillColor = Settings.ESPColor
-                h.OutlineColor = Color3.fromRGB(255, 255, 255)
-                h.Enabled = true
-            end
+    pcall(function()
+        fovCircle.Radius = Settings.FOV; fovCircle.Position = UserInputService:GetMouseLocation()
+        local char = LocalPlayer.Character
+        local hum = char and char:FindFirstChildOfClass("Humanoid")
+        if hum then
+            hum.WalkSpeed = Settings.WalkSpeed; hum.JumpPower = Settings.JumpPower
+            if Settings.Spinbot then hum.AutoRotate = false; char.HumanoidRootPart.CFrame *= CFrame.Angles(0, math.rad(60), 0) else hum.AutoRotate = true end
+            if Settings.NoClip then for _, p in pairs(char:GetDescendants()) do if p:IsA("BasePart") then p.CanCollide = false end end end
         end
-    else
-        for _, p in pairs(Players:GetPlayers()) do
-            if p.Character and p.Character:FindFirstChild("BhBz_ESP") then
-                p.Character.BhBz_ESP.Enabled = false
-            end
-        end
-    end
 
-    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-        LocalPlayer.Character.Humanoid.WalkSpeed = Settings.WalkSpeed
-        LocalPlayer.Character.Humanoid.JumpPower = Settings.JumpPower
-        if Settings.NoClip then
-            for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
-                if part:IsA("BasePart") then part.CanCollide = false end
+        -- HITBOX EXPANDER + VISUALIZER
+        for _, p in pairs(Players:GetPlayers()) do
+            if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") then
+                local head = p.Character.Head
+                if Settings.HitboxEnabled then
+                    head.Size = Vector3.new(5, 5, 5) -- Hitbox gigante
+                    head.Transparency = 0.7; head.Color = Color3.fromRGB(0, 150, 255) -- Amostrador Azul
+                    head.CanCollide = false
+                else
+                    head.Size = Vector3.new(1.2, 1.2, 1.2) -- Tamanho original aprox.
+                    head.Transparency = 0
+                end
             end
         end
-    end
-    if Settings.FullBright then Lighting.Brightness = 2; Lighting.ClockTime = 14; Lighting.GlobalShadows = false end
+
+        if Settings.ESP then
+            for _, p in pairs(Players:GetPlayers()) do
+                if p ~= LocalPlayer and p.Character then
+                    local h = p.Character:FindFirstChild("BhBz_ESP") or Instance.new("Highlight", p.Character)
+                    h.Name = "BhBz_ESP"; h.FillColor = Settings.ESPColor; h.Enabled = true
+                end
+            end
+        end
+        if Settings.FullBright then Lighting.Brightness = 2; Lighting.GlobalShadows = false end
+    end)
 end)
 
 UserInputService.InputBegan:Connect(function(i, gp)
     if not gp and i.KeyCode == Enum.KeyCode.LeftControl then MainFrame.Visible = not MainFrame.Visible end
 end)
 
-print("BhBz Hub v11 Carregado!")
+print("BhBz Hub v12.0 Loaded!")

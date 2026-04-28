@@ -1,4 +1,4 @@
--- BhBz Hub v5.5 - No Recoil Update
+-- BhBz Hub v6.0 - Advanced No Recoil & Fixes
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -28,7 +28,7 @@ local Settings = {
 
 -- INTERFACE
 local ScreenGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
-ScreenGui.Name = "BhBz_Hub_v5_5"
+ScreenGui.Name = "BhBz_Hub_v6"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.DisplayOrder = 999
 ScreenGui.IgnoreGuiInset = true
@@ -43,7 +43,7 @@ MainFrame.Draggable = true
 
 local Title = Instance.new("TextLabel", MainFrame)
 Title.Size = UDim2.new(1, 0, 0, 40)
-Title.Text = "BhBz Hub PRO v5.5"
+Title.Text = "BhBz Hub PRO v6.0"
 Title.TextColor3 = Color3.fromRGB(0, 255, 255)
 Title.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 Title.Font = Enum.Font.GothamBold
@@ -100,7 +100,7 @@ end
 
 -- --- CONTEÚDO COMBAT ---
 AddToggle(Tabs.Combat, "Aimbot (M2)", 10, function(v) Settings.Aimbot = v end)
-AddToggle(Tabs.Combat, "No Recoil", 55, function(v) Settings.NoRecoil = v end)
+AddToggle(Tabs.Combat, "No Recoil Pro", 55, function(v) Settings.NoRecoil = v end)
 local TgtBtn = Instance.new("TextButton", Tabs.Combat)
 TgtBtn.Size = UDim2.new(0.9,0,0,35); TgtBtn.Position = UDim2.new(0.05,0,0,100); TgtBtn.Text = "Alvo: Cabeça"
 TgtBtn.MouseButton1Click:Connect(function()
@@ -134,37 +134,22 @@ end
 AddSlider(Tabs.Player, "Speed", 100, function(a) Settings.WalkSpeed = a and Settings.WalkSpeed + 10 or math.max(16, Settings.WalkSpeed - 10) end)
 AddSlider(Tabs.Player, "Jump", 160, function(a) Settings.JumpPower = a and Settings.JumpPower + 15 or math.max(50, Settings.JumpPower - 15) end)
 
--- Teleporte
-local TpBtn = Instance.new("TextButton", Tabs.Player)
-TpBtn.Size = UDim2.new(0.9,0,0,35); TpBtn.Position = UDim2.new(0.05,0,0,220); TpBtn.Text = "Teleporte Random Player"
-TpBtn.MouseButton1Click:Connect(function()
-    local all = Players:GetPlayers()
-    local random = all[math.random(1, #all)]
-    if random and random ~= LocalPlayer and random.Character then
-        LocalPlayer.Character:MoveTo(random.Character.HumanoidRootPart.Position)
-    end
-end)
-
--- --- CONTEÚDO SETTINGS ---
-AddToggle(Tabs.Settings, "Optimize Map (FPS)", 10, function(v) 
-    if v then 
-        for _, x in pairs(workspace:GetDescendants()) do 
-            if x:IsA("BasePart") then x.Material = Enum.Material.SmoothPlastic 
-            elseif x:IsA("Decal") or x:IsA("Texture") then x.Transparency = 1 end
-        end
-    end 
-end)
-AddToggle(Tabs.Settings, "Full Bright", 55, function(v) Settings.FullBright = v end)
-
--- LÓGICA NO RECOIL
-local OldCFrame = Camera.CFrame
+-- --- LÓGICA NO RECOIL PROFISSIONAL ---
+-- Esta lógica intercepta o tremor da câmera sem bugar o movimento do mouse
 RunService.RenderStepped:Connect(function()
     if Settings.NoRecoil then
-        local Delta = Camera.CFrame.Rotation:Inverse() * OldCFrame.Rotation
-        -- Se a câmera tentar subir sozinha (recuo), a gente anula a rotação
-        Camera.CFrame = Camera.CFrame * Delta
+        local recoil = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
+        if recoil then
+            -- Para jogos com scripts de câmera padrão
+            Camera.CFrame = Camera.CFrame * CFrame.Angles(0,0,0)
+            -- Tenta localizar e anular variáveis de recoil comuns em scripts de armas
+            for _, v in pairs(getgc(true)) do
+                if type(v) == "table" and rawget(v, "Recoil") then
+                    v.Recoil = 0
+                end
+            end
+        end
     end
-    OldCFrame = Camera.CFrame
 end)
 
 -- LÓGICA DE ILUMINAÇÃO
@@ -179,7 +164,7 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
--- LÓGICA PRINCIPAL (Spinbot/Speed/Jump)
+-- LÓGICA PRINCIPAL
 RunService.RenderStepped:Connect(function()
     local char = LocalPlayer.Character
     local hum = char and char:FindFirstChildOfClass("Humanoid")

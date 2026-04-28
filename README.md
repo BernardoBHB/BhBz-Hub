@@ -1,4 +1,4 @@
--- BhBz Hub v12.0 - Hitbox & Spinbot Update
+-- BhBz Hub v12.5 - Redz Style & Hitbox Slider
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -17,7 +17,7 @@ local Settings = {
     WalkSpeed = 16,
     JumpPower = 50,
     FullBright = false,
-    HitboxSize = 2, -- Tamanho padrão da cabeça
+    HitboxSize = 2, 
     HitboxEnabled = false,
     AimPart = "Head",
     FOV = 100,
@@ -26,7 +26,7 @@ local Settings = {
 
 -- INTERFACE PRINCIPAL
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "BhBz_Red_v12"
+ScreenGui.Name = "BhBz_Red_v12_5"
 ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 ScreenGui.ResetOnSpawn = false
 ScreenGui.DisplayOrder = 999
@@ -82,6 +82,7 @@ local function CreateTabBtn(name, tabFrame)
 end
 CreateTabBtn("Combat", Tabs.Combat); CreateTabBtn("Visual", Tabs.Visual); CreateTabBtn("Player", Tabs.Player)
 
+-- Funções Toggle e Slider
 local function AddToggle(parent, name, yPos, callback)
     local frame = Instance.new("Frame", parent)
     frame.Size = UDim2.new(0.95, 0, 0, 45); frame.Position = UDim2.new(0, 5, 0, yPos); frame.BackgroundColor3 = Color3.fromRGB(22, 22, 22); Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 8)
@@ -92,10 +93,37 @@ local function AddToggle(parent, name, yPos, callback)
     btn.MouseButton1Click:Connect(function() enabled = not enabled; callback(enabled); btn.BackgroundColor3 = enabled and Color3.fromRGB(200, 0, 0) or Color3.fromRGB(40, 40, 40); dot:TweenPosition(UDim2.new(enabled and 1 or 0, enabled and -19 or 3, 0.5, -8), "Out", "Quad", 0.15) end)
 end
 
+local function AddSlider(parent, name, yPos, min, max, callback)
+    local frame = Instance.new("Frame", parent)
+    frame.Size = UDim2.new(0.95, 0, 0, 50); frame.Position = UDim2.new(0, 5, 0, yPos); frame.BackgroundColor3 = Color3.fromRGB(22, 22, 22); Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 8)
+    local label = Instance.new("TextLabel", frame); label.Size = UDim2.new(1, 0, 0, 20); label.Position = UDim2.new(0, 15, 0, 5); label.Text = name .. ": " .. min; label.TextColor3 = Color3.fromRGB(255, 255, 255); label.Font = Enum.Font.Gotham; label.TextSize = 12; label.TextXAlignment = Enum.TextXAlignment.Left; label.BackgroundTransparency = 1
+    local bar = Instance.new("Frame", frame); bar.Size = UDim2.new(0.85, 0, 0, 4); bar.Position = UDim2.new(0.07, 0, 0, 35); bar.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    local slider = Instance.new("TextButton", bar); slider.Size = UDim2.new(0, 12, 0, 12); slider.Position = UDim2.new(0, 0, 0.5, -6); slider.BackgroundColor3 = Color3.fromRGB(255, 0, 0); slider.Text = ""
+    Instance.new("UICorner", slider).CornerRadius = UDim.new(1, 0)
+    
+    local draggingSlider = false
+    slider.MouseButton1Down:Connect(function() draggingSlider = true end)
+    UserInputService.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 then draggingSlider = false end end)
+    
+    RunService.RenderStepped:Connect(function()
+        if draggingSlider then
+            local mousePos = UserInputService:GetMouseLocation().X
+            local barPos = bar.AbsolutePosition.X
+            local barWidth = bar.AbsoluteSize.X
+            local percent = math.clamp((mousePos - barPos) / barWidth, 0, 1)
+            slider.Position = UDim2.new(percent, -6, 0.5, -6)
+            local value = math.floor(min + (max - min) * percent)
+            label.Text = name .. ": " .. value
+            callback(value)
+        end
+    end)
+end
+
 -- FUNÇÕES TABS
 AddToggle(Tabs.Combat, "Aimbot (Segurar M2)", 10, function(v) Settings.Aimbot = v end)
 AddToggle(Tabs.Combat, "No Recoil Clássico", 60, function(v) Settings.NoRecoil = v end)
-AddToggle(Tabs.Combat, "Aumentar Hitbox Head", 110, function(v) Settings.HitboxEnabled = v end)
+AddToggle(Tabs.Combat, "Ativar Hitbox Head", 110, function(v) Settings.HitboxEnabled = v end)
+AddSlider(Tabs.Combat, "Tamanho da Hitbox", 160, 1, 20, function(v) Settings.HitboxSize = v end)
 
 AddToggle(Tabs.Visual, "ESP Inimigos", 10, function(v) Settings.ESP = v end)
 AddToggle(Tabs.Visual, "Full Bright", 60, function(v) Settings.FullBright = v end)
@@ -111,7 +139,6 @@ fovCircle.Thickness = 2; fovCircle.Color = Color3.fromRGB(255, 0, 0); fovCircle.
 
 local LastRotation = Camera.CFrame
 RunService.RenderStepped:Connect(function()
-    -- NO RECOIL CLÁSSICO
     if Settings.NoRecoil and UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then
         local DeltaX, DeltaY, DeltaZ = Camera.CFrame:ToOrientation()
         local LastX = LastRotation:ToOrientation()
@@ -119,7 +146,6 @@ RunService.RenderStepped:Connect(function()
     end
     LastRotation = Camera.CFrame
     
-    -- AIMBOT AGRESSIVO
     if Settings.Aimbot and UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then
         local target = nil; local dist = Settings.FOV
         for _, v in pairs(Players:GetPlayers()) do
@@ -146,17 +172,15 @@ RunService.Heartbeat:Connect(function()
             if Settings.NoClip then for _, p in pairs(char:GetDescendants()) do if p:IsA("BasePart") then p.CanCollide = false end end end
         end
 
-        -- HITBOX EXPANDER + VISUALIZER
+        -- HITBOX EXPANDER COM SLIDER
         for _, p in pairs(Players:GetPlayers()) do
             if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") then
                 local head = p.Character.Head
                 if Settings.HitboxEnabled then
-                    head.Size = Vector3.new(5, 5, 5) -- Hitbox gigante
-                    head.Transparency = 0.7; head.Color = Color3.fromRGB(0, 150, 255) -- Amostrador Azul
-                    head.CanCollide = false
+                    head.Size = Vector3.new(Settings.HitboxSize, Settings.HitboxSize, Settings.HitboxSize)
+                    head.Transparency = 0.7; head.Color = Color3.fromRGB(255, 0, 0); head.CanCollide = false
                 else
-                    head.Size = Vector3.new(1.2, 1.2, 1.2) -- Tamanho original aprox.
-                    head.Transparency = 0
+                    head.Size = Vector3.new(1.2, 1.2, 1.2); head.Transparency = 0
                 end
             end
         end
@@ -177,4 +201,4 @@ UserInputService.InputBegan:Connect(function(i, gp)
     if not gp and i.KeyCode == Enum.KeyCode.LeftControl then MainFrame.Visible = not MainFrame.Visible end
 end)
 
-print("BhBz Hub v12.0 Loaded!")
+print("BhBz Hub v12.5 Loaded!")

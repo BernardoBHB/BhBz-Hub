@@ -14,7 +14,6 @@ local Settings = {
     ESP = false,
     Spinbot = false,
     NoClip = false,
-    Fly = false,
     WalkSpeed = 16,
     JumpPower = 50,
     FullBright = false,
@@ -24,10 +23,6 @@ local Settings = {
     FOV = 100,
     ESPColor = Color3.fromRGB(255, 0, 0)
 }
-
--- VARIÁVEIS DO FLY
-local flySpeed = 50
-local bodyVel, bodyGyro
 
 -- INTERFACE PRINCIPAL
 local ScreenGui = Instance.new("ScreenGui")
@@ -137,7 +132,6 @@ AddToggle(Tabs.Player, "Spinbot", 10, function(v) Settings.Spinbot = v end)
 AddToggle(Tabs.Player, "Velocidade (100)", 60, function(v) Settings.WalkSpeed = v and 100 or 16 end)
 AddToggle(Tabs.Player, "Pulo (150)", 110, function(v) Settings.JumpPower = v and 150 or 50 end)
 AddToggle(Tabs.Player, "NoClip", 160, function(v) Settings.NoClip = v end)
-AddToggle(Tabs.Player, "Voo (Fly)", 210, function(v) Settings.Fly = v end)
 
 -- LÓGICA CORE
 local LastRotation = Camera.CFrame
@@ -167,41 +161,11 @@ end)
 RunService.Heartbeat:Connect(function()
     pcall(function()
         local char = LocalPlayer.Character
-        local root = char and char:FindFirstChild("HumanoidRootPart")
         local hum = char and char:FindFirstChildOfClass("Humanoid")
-        
-        if hum and root then
+        if hum then
             hum.WalkSpeed = Settings.WalkSpeed; hum.JumpPower = Settings.JumpPower
             if Settings.Spinbot then hum.AutoRotate = false; char.HumanoidRootPart.CFrame *= CFrame.Angles(0, math.rad(60), 0) else hum.AutoRotate = true end
             if Settings.NoClip then for _, p in pairs(char:GetDescendants()) do if p:IsA("BasePart") then p.CanCollide = false end end end
-            
-            -- LÓGICA DO FLY
-            if Settings.Fly then
-                hum.PlatformStand = true
-                if not bodyVel then
-                    bodyVel = Instance.new("BodyVelocity")
-                    bodyVel.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-                    bodyVel.Parent = root
-                end
-                if not bodyGyro then
-                    bodyGyro = Instance.new("BodyGyro")
-                    bodyGyro.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
-                    bodyGyro.Parent = root
-                end
-                
-                local moveDir = Vector3.new(0, 0, 0)
-                if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveDir = moveDir + Camera.CFrame.LookVector end
-                if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveDir = moveDir - Camera.CFrame.LookVector end
-                if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveDir = moveDir + Camera.CFrame.RightVector end
-                if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveDir = moveDir - Camera.CFrame.RightVector end
-                
-                bodyVel.Velocity = moveDir * flySpeed
-                bodyGyro.CFrame = Camera.CFrame
-            else
-                if hum.PlatformStand then hum.PlatformStand = false end
-                if bodyVel then bodyVel:Destroy(); bodyVel = nil end
-                if bodyGyro then bodyGyro:Destroy(); bodyGyro = nil end
-            end
         end
 
         -- HITBOX EXPANDER COM SLIDER

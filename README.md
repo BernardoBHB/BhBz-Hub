@@ -118,7 +118,7 @@ local function AddSlider(parent, name, yPos, min, max, callback)
             local percent = math.clamp((mousePos - barPos) / barWidth, 0, 1)
             slider.Position = UDim2.new(percent, -6, 0.5, -6)
             local value = math.floor(min + (max - min) * percent)
-            local = name .. ": " .. value
+            label.Text = name .. ": " .. value
             callback(value)
         end
     end)
@@ -175,7 +175,7 @@ RunService.Heartbeat:Connect(function()
             if Settings.Spinbot then hum.AutoRotate = false; char.HumanoidRootPart.CFrame *= CFrame.Angles(0, math.rad(60), 0) else hum.AutoRotate = true end
             if Settings.NoClip then for _, p in pairs(char:GetDescendants()) do if p:IsA("BasePart") then p.CanCollide = false end end end
             
-            -- LÓGICA DO FLY INTEGRADAA
+            -- LÓGICA DO FLY
             if Settings.Fly then
                 hum.PlatformStand = true
                 if not bodyVel then

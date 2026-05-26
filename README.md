@@ -30,7 +30,7 @@ local Settings = {
 
     NoClip = false,
 
-    WalkSpeed = 16,
+    WalkSpeed = 350,
 
     JumpPower = 50,
 

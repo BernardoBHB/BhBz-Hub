@@ -260,7 +260,7 @@ AddToggle(Tabs.Visual, "Full Bright", 60, function(v) Settings.FullBright = v en
 
 AddToggle(Tabs.Player, "Spinbot", 10, function(v) Settings.Spinbot = v end)
 
-AddToggle(Tabs.Player, "Velocidade (100)", 60, function(v) Settings.WalkSpeed = v and 100 or 16 end)
+AddToggle(Tabs.Player, "Velocidade (500)", 60, function(v) Settings.WalkSpeed = v and 100 or 16 end)
 
 AddToggle(Tabs.Player, "Pulo (150)", 110, function(v) Settings.JumpPower = v and 150 or 50 end)
 

@@ -1,4 +1,4 @@
--- BhBz Hub v12.5 - Redz Style & Hitbox Slider
+-- BhBz Hub v12.5 - Redz Style & Hitbox Slider (No FOV Circle)
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -134,9 +134,6 @@ AddToggle(Tabs.Player, "Pulo (150)", 110, function(v) Settings.JumpPower = v and
 AddToggle(Tabs.Player, "NoClip", 160, function(v) Settings.NoClip = v end)
 
 -- LÓGICA CORE
-local fovCircle = Drawing.new("Circle")
-fovCircle.Thickness = 2; fovCircle.Color = Color3.fromRGB(255, 0, 0); fovCircle.Visible = true
-
 local LastRotation = Camera.CFrame
 RunService.RenderStepped:Connect(function()
     if Settings.NoRecoil and UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then
@@ -163,7 +160,6 @@ end)
 
 RunService.Heartbeat:Connect(function()
     pcall(function()
-        fovCircle.Radius = Settings.FOV; fovCircle.Position = UserInputService:GetMouseLocation()
         local char = LocalPlayer.Character
         local hum = char and char:FindFirstChildOfClass("Humanoid")
         if hum then

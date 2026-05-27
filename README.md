@@ -1,4 +1,3 @@
--- BhBz Hub v13.0 - Redz Style & Flight Slider Update
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -7,7 +6,6 @@ local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 local Mouse = LocalPlayer:GetMouse()
 
--- CONFIGURAÇÕES
 local Settings = {
     Aimbot = false,
     NoRecoil = false,
@@ -26,7 +24,6 @@ local Settings = {
     FlySpeed = 50
 }
 
--- INTERFACE PRINCIPAL
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "BhBz_Red_v13_0"
 ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
@@ -40,7 +37,6 @@ MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
 
--- DRAG SYSTEM
 local dragging, dragInput, dragStart, startPos
 MainFrame.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -58,7 +54,6 @@ end)
 
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
--- Lateral
 local SideBar = Instance.new("Frame", MainFrame)
 SideBar.Size = UDim2.new(0, 130, 1, 0); SideBar.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
 Instance.new("UICorner", SideBar).CornerRadius = UDim.new(0, 10)
@@ -84,7 +79,6 @@ local function CreateTabBtn(name, tabFrame)
 end
 CreateTabBtn("Combat", Tabs.Combat); CreateTabBtn("Visual", Tabs.Visual); CreateTabBtn("Player", Tabs.Player)
 
--- Funções Toggle e Slider
 local function AddToggle(parent, name, yPos, callback)
     local frame = Instance.new("Frame", parent)
     frame.Size = UDim2.new(0.95, 0, 0, 45); frame.Position = UDim2.new(0, 5, 0, yPos); frame.BackgroundColor3 = Color3.fromRGB(22, 22, 22); Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 8)
@@ -121,7 +115,6 @@ local function AddSlider(parent, name, yPos, min, max, callback)
     end)
 end
 
--- FUNÇÕES TABS
 AddToggle(Tabs.Combat, "Aimbot (Segurar M2)", 10, function(v) Settings.Aimbot = v end)
 AddToggle(Tabs.Combat, "No Recoil Clássico", 60, function(v) Settings.NoRecoil = v end)
 AddToggle(Tabs.Combat, "Ativar Hitbox Head", 110, function(v) Settings.HitboxEnabled = v end)
@@ -137,7 +130,6 @@ AddToggle(Tabs.Player, "NoClip", 160, function(v) Settings.NoClip = v end)
 AddToggle(Tabs.Player, "Ativar Voo (Fly)", 210, function(v) Settings.FlyEnabled = v end)
 AddSlider(Tabs.Player, "Velocidade do Voo", 260, 1, 300, function(v) Settings.FlySpeed = v end)
 
--- LÓGICA CORE
 local LastRotation = Camera.CFrame
 RunService.RenderStepped:Connect(function()
     if Settings.NoRecoil and UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then
@@ -162,7 +154,6 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- LÓGICA DO FLY SYSTEM
 RunService.Heartbeat:Connect(function()
     pcall(function()
         local char = LocalPlayer.Character
@@ -171,10 +162,9 @@ RunService.Heartbeat:Connect(function()
         
         if hum and hrp then
             if Settings.FlyEnabled then
-                hum.PlatformStand = true -- Desativa física padrão para não cair
+                hum.PlatformStand = true
                 local flyVelocity = Vector3.new(0, 0, 0)
                 
-                -- Detecta os comandos de direção
                 if UserInputService:IsKeyDown(Enum.KeyCode.W) then flyVelocity = flyVelocity + Camera.CFrame.LookVector end
                 if UserInputService:IsKeyDown(Enum.KeyCode.S) then flyVelocity = flyVelocity - Camera.CFrame.LookVector end
                 if UserInputService:IsKeyDown(Enum.KeyCode.A) then flyVelocity = flyVelocity - Camera.CFrame.RightVector end
@@ -182,7 +172,6 @@ RunService.Heartbeat:Connect(function()
                 if UserInputService:IsKeyDown(Enum.KeyCode.Space) then flyVelocity = flyVelocity + Vector3.new(0, 1, 0) end
                 if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then flyVelocity = flyVelocity - Vector3.new(0, 1, 0) end
                 
-                -- Aplica o movimento baseado no Slider
                 hrp.Velocity = flyVelocity.Unit * Settings.FlySpeed
                 if flyVelocity == Vector3.new(0, 0, 0) then hrp.Velocity = Vector3.new(0, 0, 0) end
             else
@@ -195,7 +184,6 @@ RunService.Heartbeat:Connect(function()
             if Settings.NoClip then for _, p in pairs(char:GetDescendants()) do if p:IsA("BasePart") then p.CanCollide = false end end end
         end
 
-        -- HITBOX EXPANDER COM SLIDER
         for _, p in pairs(Players:GetPlayers()) do
             if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") then
                 local head = p.Character.Head

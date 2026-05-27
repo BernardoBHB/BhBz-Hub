@@ -1,4 +1,4 @@
--- BhBz Hub v12.5 - Redz Style & Hitbox Slider (No FOV Circle)
+-- BhBz Hub v13.0 - Redz Style & Flight Slider Update
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -14,19 +14,21 @@ local Settings = {
     ESP = false,
     Spinbot = false,
     NoClip = false,
-    WalkSpeed = 16, -- Começa no padrão do jogo
+    WalkSpeed = 16,
     JumpPower = 50,
     FullBright = false,
     HitboxSize = 2, 
     HitboxEnabled = false,
     AimPart = "Head",
     FOV = 100,
-    ESPColor = Color3.fromRGB(255, 0, 0)
+    ESPColor = Color3.fromRGB(255, 0, 0),
+    FlyEnabled = false,
+    FlySpeed = 50
 }
 
 -- INTERFACE PRINCIPAL
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "BhBz_Red_v12_5"
+ScreenGui.Name = "BhBz_Red_v13_0"
 ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 ScreenGui.ResetOnSpawn = false
 ScreenGui.DisplayOrder = 999
@@ -129,9 +131,11 @@ AddToggle(Tabs.Visual, "ESP Inimigos", 10, function(v) Settings.ESP = v end)
 AddToggle(Tabs.Visual, "Full Bright", 60, function(v) Settings.FullBright = v end)
 
 AddToggle(Tabs.Player, "Spinbot", 10, function(v) Settings.Spinbot = v end)
-AddToggle(Tabs.Player, "Velocidade (350)", 60, function(v) Settings.WalkSpeed = v and 350 or 16 end) -- Corrigido para aplicar 350
+AddToggle(Tabs.Player, "Velocidade (350)", 60, function(v) Settings.WalkSpeed = v and 350 or 16 end)
 AddToggle(Tabs.Player, "Pulo (150)", 110, function(v) Settings.JumpPower = v and 150 or 50 end)
 AddToggle(Tabs.Player, "NoClip", 160, function(v) Settings.NoClip = v end)
+AddToggle(Tabs.Player, "Ativar Voo (Fly)", 210, function(v) Settings.FlyEnabled = v end)
+AddSlider(Tabs.Player, "Velocidade do Voo", 260, 1, 300, function(v) Settings.FlySpeed = v end)
 
 -- LÓGICA CORE
 local LastRotation = Camera.CFrame
@@ -158,13 +162,36 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
+-- LÓGICA DO FLY SYSTEM
 RunService.Heartbeat:Connect(function()
     pcall(function()
         local char = LocalPlayer.Character
         local hum = char and char:FindFirstChildOfClass("Humanoid")
-        if hum then
-            hum.WalkSpeed = Settings.WalkSpeed; hum.JumpPower = Settings.JumpPower
-            if Settings.Spinbot then hum.AutoRotate = false; char.HumanoidRootPart.CFrame *= CFrame.Angles(0, math.rad(60), 0) else hum.AutoRotate = true end
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        
+        if hum and hrp then
+            if Settings.FlyEnabled then
+                hum.PlatformStand = true -- Desativa física padrão para não cair
+                local flyVelocity = Vector3.new(0, 0, 0)
+                
+                -- Detecta os comandos de direção
+                if UserInputService:IsKeyDown(Enum.KeyCode.W) then flyVelocity = flyVelocity + Camera.CFrame.LookVector end
+                if UserInputService:IsKeyDown(Enum.KeyCode.S) then flyVelocity = flyVelocity - Camera.CFrame.LookVector end
+                if UserInputService:IsKeyDown(Enum.KeyCode.A) then flyVelocity = flyVelocity - Camera.CFrame.RightVector end
+                if UserInputService:IsKeyDown(Enum.KeyCode.D) then flyVelocity = flyVelocity + Camera.CFrame.RightVector end
+                if UserInputService:IsKeyDown(Enum.KeyCode.Space) then flyVelocity = flyVelocity + Vector3.new(0, 1, 0) end
+                if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then flyVelocity = flyVelocity - Vector3.new(0, 1, 0) end
+                
+                -- Aplica o movimento baseado no Slider
+                hrp.Velocity = flyVelocity.Unit * Settings.FlySpeed
+                if flyVelocity == Vector3.new(0, 0, 0) then hrp.Velocity = Vector3.new(0, 0, 0) end
+            else
+                if hum.PlatformStand then hum.PlatformStand = false end
+                hum.WalkSpeed = Settings.WalkSpeed
+                hum.JumpPower = Settings.JumpPower
+                if Settings.Spinbot then hum.AutoRotate = false; hrp.CFrame *= CFrame.Angles(0, math.rad(60), 0) else hum.AutoRotate = true end
+            end
+            
             if Settings.NoClip then for _, p in pairs(char:GetDescendants()) do if p:IsA("BasePart") then p.CanCollide = false end end end
         end
 
@@ -197,4 +224,4 @@ UserInputService.InputBegan:Connect(function(i, gp)
     if not gp and i.KeyCode == Enum.KeyCode.LeftControl then MainFrame.Visible = not MainFrame.Visible end
 end)
 
-print("BhBz Hub v12.5 Loaded!")
+print("BhBz Hub v13.0 Loaded!")
